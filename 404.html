@@ -6,8 +6,9 @@
 
   <title>DIGIT. — Страница не найдена</title>
   <meta name="description" content="Страница не найдена. Вернитесь на главную DIGIT. или откройте DIGIT. Lite для быстрого расчёта рекламных кампаний.">
+  <!-- Maxim: 404 не должна индексироваться, но ссылки на сайте могут обходиться дальше -->
+  <meta name="robots" content="noindex, follow">
   <meta name="theme-color" content="#0A0A0C">
-  <link rel="canonical" href="https://digitcalc.ru/404.html">
 
   <!-- Open Graph -->
   <meta property="og:type" content="website">
@@ -44,12 +45,11 @@
   <style>
     :root {
       --radius-card: 32px;
-      --radius-pill: 999px;
       --radius-button: 40px;
+      --radius-focus: 12px;
 
       --border-soft: 1px solid rgba(255, 255, 255, 0.08);
       --border-accent: 1px solid rgba(234, 88, 12, 0.30);
-      --border-quiet: 1px solid rgba(255, 255, 255, 0.10);
 
       --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
       --dur-fast: 0.3s;
@@ -69,7 +69,7 @@
 
     body {
       background:
-        radial-gradient(circle at top, rgba(234, 88, 12, 0.08), transparent 38%),
+        radial-gradient(circle at top, rgba(234, 88, 12, 0.06), transparent 36%),
         #0A0A0C;
       font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
       color: #FFFFFF;
@@ -82,51 +82,29 @@
 
     .container {
       width: 100%;
-      max-width: 760px;
+      max-width: 720px;
       margin: 0 auto;
     }
 
     .shell {
-      background: rgba(18, 18, 24, 0.62);
-      backdrop-filter: blur(14px);
+      background: rgba(18, 18, 24, 0.58);
+      backdrop-filter: blur(12px);
       border: var(--border-soft);
       border-radius: var(--radius-card);
-      padding: 48px 40px;
+      padding: 56px 44px 48px;
       text-align: center;
-      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
-    }
-
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: rgba(255, 255, 255, 0.05);
-      border: var(--border-soft);
-      border-radius: var(--radius-pill);
-      padding: 8px 18px;
-      font-size: 13px;
-      font-weight: 600;
-      color: #9A9AA4;
-      margin-bottom: 28px;
-    }
-
-    .badge::before {
-      content: '';
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: #EA580C;
+      box-shadow: 0 20px 48px rgba(0, 0, 0, 0.24);
     }
 
     .logo {
       display: inline-block;
       text-decoration: none;
-      font-size: 48px;
+      font-size: 46px;
       font-weight: 800;
       letter-spacing: -1px;
       line-height: 0.95;
       color: #FFFFFF;
-      margin-bottom: 24px;
+      margin-bottom: 28px;
       -webkit-tap-highlight-color: transparent;
     }
 
@@ -142,23 +120,20 @@
     .logo:focus-visible {
       outline: 2px solid rgba(234, 88, 12, 0.5);
       outline-offset: 6px;
-      border-radius: 12px;
+      border-radius: var(--radius-focus);
     }
 
     .code {
-      font-size: 140px;
+      font-size: 132px;
       font-weight: 900;
-      line-height: 0.95;
+      line-height: 0.9;
       letter-spacing: -4px;
-      margin-bottom: 20px;
-      background: linear-gradient(135deg, #EA580C 0%, #FF8A4C 100%);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
+      color: #EA580C;
+      margin-bottom: 22px;
     }
 
     .title {
-      font-size: 32px;
+      font-size: 30px;
       font-weight: 800;
       letter-spacing: -0.6px;
       line-height: 1.1;
@@ -168,7 +143,7 @@
 
     .desc {
       max-width: 560px;
-      margin: 0 auto 36px;
+      margin: 0 auto 34px;
       font-size: 17px;
       color: #9A9AA4;
       line-height: 1.65;
@@ -177,10 +152,9 @@
 
     .actions {
       display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 12px;
-      margin-bottom: 28px;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
     }
 
     .action-btn {
@@ -188,11 +162,11 @@
       align-items: center;
       justify-content: center;
       gap: 10px;
-      min-height: 52px;
-      padding: 14px 24px;
+      min-height: 54px;
+      padding: 14px 26px;
       border-radius: var(--radius-button);
       text-decoration: none;
-      font-size: 15px;
+      font-size: 16px;
       font-weight: 600;
       transition:
         transform var(--dur-fast) var(--ease-standard),
@@ -204,7 +178,8 @@
       touch-action: manipulation;
     }
 
-    .action-btn svg {
+    .action-btn svg,
+    .secondary-link svg {
       width: 18px;
       height: 18px;
       stroke: currentColor;
@@ -213,11 +188,13 @@
       flex-shrink: 0;
     }
 
-    .action-btn:focus {
+    .action-btn:focus,
+    .secondary-link:focus {
       outline: none;
     }
 
-    .action-btn:focus-visible {
+    .action-btn:focus-visible,
+    .secondary-link:focus-visible {
       outline: 2px solid rgba(234, 88, 12, 0.55);
       outline-offset: 4px;
     }
@@ -230,28 +207,28 @@
     }
 
     .action-btn-primary:hover {
-      background: rgba(234, 88, 12, 0.20);
-      border-color: rgba(234, 88, 12, 0.45);
+      background: rgba(234, 88, 12, 0.18);
+      border-color: rgba(234, 88, 12, 0.42);
       transform: translateY(-2px);
     }
 
-    .action-btn-secondary {
-      background: rgba(255, 255, 255, 0.04);
-      border: var(--border-quiet);
+    .secondary-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      font-size: 15px;
+      font-weight: 600;
+      color: #C7C7CF;
+      transition:
+        color var(--dur-fast) var(--ease-standard),
+        transform var(--dur-fast) var(--ease-standard);
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .secondary-link:hover {
       color: #FFFFFF;
-    }
-
-    .action-btn-secondary:hover {
-      background: rgba(255, 255, 255, 0.08);
-      border-color: rgba(255, 255, 255, 0.16);
-      transform: translateY(-2px);
-    }
-
-    .hint {
-      font-size: 13px;
-      color: #6A6A78;
-      line-height: 1.6;
-      text-wrap: balance;
+      transform: translateY(-1px);
     }
 
     @media (max-width: 768px) {
@@ -259,24 +236,24 @@
         padding: 24px 16px;
       }
 
+      .container {
+        max-width: 100%;
+      }
+
       .shell {
-        padding: 36px 22px 28px;
+        padding: 38px 22px 32px;
         border-radius: 28px;
       }
 
-      .badge {
-        margin-bottom: 24px;
-      }
-
       .logo {
-        font-size: 42px;
-        margin-bottom: 20px;
+        font-size: 40px;
+        margin-bottom: 22px;
       }
 
       .code {
-        font-size: 100px;
+        font-size: 96px;
         letter-spacing: -3px;
-        margin-bottom: 16px;
+        margin-bottom: 18px;
       }
 
       .title {
@@ -288,13 +265,12 @@
         margin-bottom: 28px;
       }
 
-      .actions {
-        flex-direction: column;
-        align-items: stretch;
-      }
-
       .action-btn {
         width: 100%;
+      }
+
+      .secondary-link {
+        min-height: 24px;
       }
     }
 
@@ -307,7 +283,7 @@
       }
 
       .action-btn-primary:hover,
-      .action-btn-secondary:hover {
+      .secondary-link:hover {
         transform: none;
       }
     }
@@ -316,9 +292,7 @@
 <body>
   <main class="container">
     <section class="shell" aria-labelledby="page-title">
-      <div class="badge">Ошибка 404</div>
-
-      <a href="https://digitcalc.ru/" class="logo" aria-label="Перейти на главную DIGIT.">
+      <a href="/" class="logo" aria-label="Перейти на главную DIGIT.">
         DIGIT<span>.</span>
       </a>
 
@@ -327,12 +301,12 @@
       <h1 class="title" id="page-title">Страница не найдена</h1>
 
       <p class="desc">
-        Ссылка могла устареть или адрес был изменён.<br>
-        Вернитесь на главную DIGIT. или откройте DIGIT. Lite для быстрого расчёта рекламных кампаний.
+        Ссылка могла устареть или адрес был изменён.
+        Вернитесь на главную или откройте DIGIT. Lite для быстрого расчёта рекламных кампаний.
       </p>
 
       <div class="actions">
-        <a href="https://digitcalc.ru/" class="action-btn action-btn-primary">
+        <a href="/" class="action-btn action-btn-primary">
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M3 10.5L12 3l9 7.5"></path>
             <path d="M5 9.5V21h14V9.5"></path>
@@ -340,17 +314,13 @@
           На главную
         </a>
 
-        <a href="https://digitcalc.ru/lite/" class="action-btn action-btn-secondary">
+        <a href="/lite/" class="secondary-link">
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M5 12h14"></path>
             <path d="M13 6l6 6-6 6"></path>
           </svg>
           Открыть DIGIT. Lite
         </a>
-      </div>
-
-      <div class="hint">
-        Быстро посчитать. Понятно показать. Легко принять решение.
       </div>
     </section>
   </main>
