@@ -1,12 +1,14 @@
 {
-  "id": "/lite/",
-  "name": "DIGIT. Lite",
-  "short_name": "DIGIT. Lite",
-  "start_url": "/lite/",
-  "scope": "/lite/",
+  "id": "/",
+  "name": "DIGIT.",
+  "short_name": "DIGIT.",
+  "description": "Калькуляторы цифровой рекламы.",
+  "lang": "ru",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#0A0A0C",
   "theme_color": "#0A0A0C",
+  "background_color": "#0A0A0C",
   "icons": [
     {
       "src": "/web-app-manifest-192x192.png",
