@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" aria-label="DIGIT D3 Reference Right">
+  <rect width="1000" height="1000" rx="180" fill="#0A0A0C"/>
+  <path fill="#FFFFFF" fill-rule="evenodd" d="M207 165H567C742 165 842 285 842 500C842 715 742 835 567 835H207Q177 835 177 805V195Q177 165 207 165ZM367 325Q347 325 347 345V655Q347 675 367 675H517C609 675 677 607 677 500C677 393 609 325 517 325H367Z"/>
+  <circle cx="728" cy="783.5" r="144" fill="#0A0A0C"/>
+  <circle cx="728" cy="783.5" r="112.5" fill="#EA580C"/>
+</svg>
