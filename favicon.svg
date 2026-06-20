@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" aria-label="DIGIT D2 Seat">
+  <rect width="1000" height="1000" rx="250" fill="#0A0A0C"/>
+
+  <path
+    fill="#FFFFFF"
+    fill-rule="evenodd"
+    d="
+      M275 203H492
+      C656 203 770 315 770 500
+      C770 685 656 797 492 797
+      H275V203Z
+
+      M420 312V688H480
+      C575 688 626 625 626 500
+      C626 375 575 312 480 312
+      H420Z
+    "
+  />
+
+  <circle cx="716" cy="783.5" r="130.5" fill="#0A0A0C"/>
+  <circle cx="716" cy="783.5" r="112.5" fill="#EA580C"/>
+</svg>
