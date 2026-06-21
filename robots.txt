@@ -1,4 +1,2 @@
 User-agent: *
 Allow: /
-
-Sitemap: https://digitcalc.ru/sitemap.xml
