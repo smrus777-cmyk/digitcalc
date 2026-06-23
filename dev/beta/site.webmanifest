@@ -1,0 +1,26 @@
+{
+  "id": "/bev/lite/",
+  "name": "DIGIT. Beta",
+  "short_name": "DIGIT. Beta",
+  "description": "Быстрый предварительный расчёт цифровых рекламных кампаний.",
+  "lang": "ru",
+  "start_url": "/bev/lite/",
+  "scope": "/bev/lite/",
+  "display": "standalone",
+  "theme_color": "#0A0A0C",
+  "background_color": "#0A0A0C",
+  "icons": [
+    {
+      "src": "/web-app-manifest-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/web-app-manifest-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
