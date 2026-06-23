@@ -3,7 +3,7 @@
   ================================================
   Автор: Maxim Sorokin
   Бренд: DIGIT.
-    Продукт: DIGIT. Lite · v10.3.0
+    Продукт: DIGIT. Lite · v10.3.1
     ⚠️  ВЕРСИЯ САМОСИНХРОНИЗИРУЕТСЯ. Меняешь ТОЛЬКО 2 места руками:
        1. const APP_VERSION в JS (главная точка правды)
        2. Эта строка (Продукт: ...) — для разработчика, браузер её не читает
@@ -13,6 +13,26 @@
        badgeFull / badgeShort / promptVersion / printBadge / mailto subject.
        HTML-значения «v9.7.8» в разметке — заглушки, JS их перезаписывает.
        <title> и <meta> НЕ трогаем — намеренно без версии (SEO).
+  ================================================
+  📜 ИСТОРИЯ ВЕРСИЙ (читаемая — синхронна с разделом «История версий» в UI)
+     Свежие — сверху, ранние — снизу. «Человеческий» changelog для людей.
+     Детальные технические заметки разработки — НИЖЕ (блок «Изменения:»).
+  ------------------------------------------------
+  v10.3.0  — Новый раздел «Настройки»: тема оформления, история версий и информация о продукте.
+  v10.2.33 — Контакты менеджера теперь можно добавить в коммерческое предложение PDF.
+  v10.2.27 — Появилась выгрузка коммерческого предложения в PDF (десктопная версия).
+  v10.2.0  — Теперь можно изменить ставку за выход и сразу пересчитать бюджет.
+  v9.3.0   — Добавлена подсказка для быстрого сохранения расчёта.
+  v9.0.8   — Появились слайдеры для более быстрого ввода параметров.
+  v8.41    — Обновлён интерфейс просмотра результата на мобильных устройствах.
+  v7.1     — Расчёт можно сохранить как изображение PNG.
+  v6.6.3   — Появилась полноценная мобильная версия калькулятора.
+  v3.2     — Добавлен расчёт стоимости по экранам, дням, выходам и часам вещания.
+  v1.0.0   — Первая версия калькулятора для предварительной оценки рекламных кампаний.
+  ================================================
+
+  🔧 ДЕТАЛЬНЫЕ ТЕХНИЧЕСКИЕ ЗАМЕТКИ (changelog разработчика; хронологически — ранние сверху).
+     Сохранены как институциональная память: корни багов, обоснования решений, эпопеи полировки.
   Изменения: v8.41 — мобильный футер: новая структура (цена + чипы + accent),
              эффект «вырастания» в Apple-стиле (staggered reveal),
              все динамические связки сохранены, десктоп и снимок не тронуты.
@@ -1197,13 +1217,26 @@
              шестерёнка в семье header-иконок). Между логотипом и actions добавлен пустой flex-слот
              #headerContextSlot — задел под будущий «Город • Формат» (напр. «Волгоград • ПВЗ»). Новый
              bottom sheet «Настройки» (клон механики .share-sheet, свой #settingsOverlay): 4 аккордеон-
-             секции — Оформление (radio-rows темы), История версий (DEMO-данные, не из changelog),
+             секции — Оформление (radio-rows темы), История версий (реальная история, 11 версий),
              О продукте, Поддержать автора; внутренний скролл .settings-scroll. Триггер темы переехал
              в настройки (theme-engine setTheme() цел; зависимость от themeTooltip снята; +syncThemeOptions).
              Скрытый DEV-reset (5 тапов) переехал с #headerBadge на строку версии #settingsVersion (без
              cursor:pointer). Sheet-manager: settings/share/rate не открыты одновременно; overlay-tap,
              «Закрыть» и Esc закрывают. Версия subtitle = DIGIT. Lite · ${APP_VERSION} (автосинхрон цел).
              СВЯТЫНИ ЦЕЛЫ: html2canvas 1.4.1, calculateTotal, snapshot/PDF/print, rate sheet, профиль, slider engine.
+             Доработки v10.3.0: «История версий» наполнена реальными 11 версиями (массив SETTINGS_HISTORY,
+             синхронно с читаемым блоком истории вверху файла); на узком мобильном (≤390px) хвост подписи
+             PNG «… или чат» скрыт (нет переноса на 2-ю строку); фон под открытым листом инертен —
+             scroll-lock через MutationObserver на класс .open (body.sheet-open → overflow:hidden),
+             скролл ВНУТРИ настроек цел (overscroll-behavior:contain). Функции share/rate НЕ тронуты.
+
+			              v10.3.1 — Fix скролла «Истории версий» в настройках (Apple). КОРЕНЬ: на десктопе
+             body{zoom} (0.8–2.3 по высоте экрана) масштабировал и 100dvh → max-height settings sheet
+             рендерился больше экрана, верх уезжал «в космос», внутренний скролл не включался (на мобиле
+             zoom не применяется — там было ОК). РЕШЕНИЕ: zoom-компенсация max-height на каждом desktop-
+             брейкпоинте — calc((100dvh-24px)/zoom) + overflow:hidden на sheet. Теперь закреплены
+             ручка + «Настройки» + версия сверху и «Закрыть» снизу, скроллится только середина (секции +
+             раскрытия) — единообразно на десктопе и мобиле. Условия media 1:1 с zoom-правилами body.
 			 
   ================================================
 -->
@@ -3151,6 +3184,19 @@
     .fmt-text { flex:1; }
     .fmt-title { font-size:14px; font-weight:600; color:var(--text-primary); margin-bottom:2px; }
     .fmt-desc { font-size:11px; color:var(--text-muted); line-height:1.35; }
+
+    /* ════════════════════════════════════════════════════════════════
+       v10.3.0: узкий мобильный — хвост подписи PNG «… или чат» скрывается,
+       чтобы вторичный текст не переносился на 2-ю строку (Nubia ~372px).
+       Десктоп и обычный мобильный (>390px) — подпись полностью. */
+    @media (max-width: 390px) { .fmt-desc-tail { display: none; } }
+
+    /* v10.3.0: фон ИНЕРТЕН под открытым листом (Apple HIG: пока модальный лист
+       сверху — страница за ним не реагирует на палец). body.sheet-open вешает
+       MutationObserver при открытии любого листа. overscroll-behavior:contain
+       гасит scroll-chaining внутреннего скролла настроек (и помогает на iOS). */
+    html.sheet-open, body.sheet-open { overflow: hidden; overscroll-behavior: contain; }
+    .settings-scroll { overscroll-behavior: contain; }
     .fmt-badge { font-size:10px; font-weight:700; padding:3px 9px; border-radius:20px; flex-shrink:0; transition: opacity var(--dur-medium) var(--ease-standard); }
     .sheet-cancel { margin:8px 12px 0; width:calc(100% - 24px); padding:13px; border-radius:var(--radius-button); border:var(--border-thin) solid var(--border-subtle); background:transparent; color:var(--text-secondary); font-size:14px; font-family:inherit; cursor:pointer; }
     .sheet-cancel:hover { background:var(--bg-card-soft); }
@@ -3165,7 +3211,7 @@
        v10.3.0: SETTINGS bottom sheet. Наследует механику .share-sheet
        (выезд/overlay/curve). Тут — только то, что специфично настройкам:
        flex-колонка с фикс. шапкой/футером и внутренним скроллом тела. */
-    .settings-sheet { display:flex; flex-direction:column; max-height:calc(100vh - 24px); max-height:calc(100dvh - 24px); }
+    .settings-sheet { display:flex; flex-direction:column; max-height:calc(100vh - 24px); max-height:calc(100dvh - 24px); overflow:hidden; }
     .settings-sheet-header { flex:0 0 auto; padding:2px 20px 14px; text-align:center; }
     .settings-sheet-title { font-size:18px; font-weight:600; color:var(--text-primary); letter-spacing:-0.2px; }
     .settings-sheet-version { margin-top:4px; font-size:12px; font-weight:400; color:var(--text-muted); user-select:none; -webkit-user-select:none; -webkit-tap-highlight-color:transparent; }
@@ -3222,6 +3268,35 @@
     .settings-support-qr { width:108px; height:108px; align-self:center; border-radius:14px; background:var(--bg-input); border:var(--border-thin) solid var(--border-subtle); display:flex; align-items:center; justify-content:center; color:var(--text-muted); font-size:11px; line-height:1.4; text-align:center; }
     .settings-support-link { font-size:13px; color:var(--text-secondary); text-align:center; padding:10px 12px; border-radius:var(--radius-button); background:var(--bg-input); border:var(--border-thin) solid var(--border-subtle); word-break:break-all; }
     .settings-support-meta { font-size:11.5px; color:var(--text-muted); text-align:center; line-height:1.5; }
+
+    /* ════════════════════════════════════════════════════════════════
+       v10.3.1: КОМПЕНСАЦИЯ body{zoom} для settings sheet (КОРЕНЬ бага скролла).
+       На десктопе body масштабируется (zoom 0.8–2.3 по высоте экрана) — zoom тянет
+       и 100dvh, поэтому max-height:100dvh рендерился БОЛЬШЕ экрана → верх sheet уезжал,
+       внутренний скролл не включался. Делим max-height на тот же коэффициент zoom —
+       sheet встаёт ровно в экран, скролл середины работает. Условия 1:1 с zoom-правилами.
+       Мобайл (pointer:coarse) сюда не попадает — там zoom=1 и базовое правило корректно. */
+    @media (pointer: fine) and (min-width: 768px) and (max-height: 770px) and (hover: hover) {
+      .settings-sheet { max-height: calc((100vh - 24px) / 0.8); max-height: calc((100dvh - 24px) / 0.8); }
+    }
+    @media (pointer: fine) and (min-width: 768px) and (min-height: 771px) and (max-height: 950px) and (hover: hover) {
+      .settings-sheet { max-height: calc((100vh - 24px) / 0.95); max-height: calc((100dvh - 24px) / 0.95); }
+    }
+    @media (pointer: fine) and (min-width: 768px) and (min-height: 951px) and (max-height: 1090px) and (hover: hover) {
+      .settings-sheet { max-height: calc((100vh - 24px) / 1.1); max-height: calc((100dvh - 24px) / 1.1); }
+    }
+    @media (pointer: fine) and (min-width: 768px) and (min-height: 1091px) and (max-height: 1250px) and (hover: hover) {
+      .settings-sheet { max-height: calc((100vh - 24px) / 1.25); max-height: calc((100dvh - 24px) / 1.25); }
+    }
+    @media (pointer: fine) and (min-width: 768px) and (min-height: 1251px) and (max-height: 1390px) and (hover: hover) {
+      .settings-sheet { max-height: calc((100vh - 24px) / 1.35); max-height: calc((100dvh - 24px) / 1.35); }
+    }
+    @media (pointer: fine) and (min-width: 768px) and (min-height: 1391px) and (max-height: 1699px) and (hover: hover) {
+      .settings-sheet { max-height: calc((100vh - 24px) / 1.5); max-height: calc((100dvh - 24px) / 1.5); }
+    }
+    @media (pointer: fine) and (min-width: 768px) and (min-height: 1700px) and (hover: hover) {
+      .settings-sheet { max-height: calc((100vh - 24px) / 2.3); max-height: calc((100dvh - 24px) / 2.3); }
+    }
 
     @media print {
       body > *:not(#printBlock) { display: none !important; }
@@ -4356,7 +4431,7 @@
   <div class="sheet-options">
     <button class="format-btn fmt-png" id="savePngBtn">
       <div class="fmt-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
-      <div class="fmt-text"><div class="fmt-title">Изображение PNG</div><div class="fmt-desc">Быстро отправить в мессенджер или чат</div></div>
+      <div class="fmt-text"><div class="fmt-title">Изображение PNG</div><div class="fmt-desc">Быстро отправить в мессенджер<span class="fmt-desc-tail"> или чат</span></div></div>
       <span class="fmt-badge">PNG</span>
     </button>
     <button class="format-btn fmt-pdf" id="savePdfBtn">
@@ -4749,7 +4824,7 @@
     // Все DOM-узлы и ссылки обновляются из этой константы в init().
     // При обновлении версии — менять ТОЛЬКО здесь и в <title>.
     // ================================================
-      const APP_VERSION = 'v10.3.0';
+      const APP_VERSION = 'v10.3.1';
 
     // v10.0.3: словарь подсказок для frequency.
     // Apple HIG «Contextual Helper Text» / Nielsen №2 «Match real world».
@@ -8645,9 +8720,17 @@ availH = colH - labelH - labelGap - metricsGap - metricsH - accentReserve;
 
       // История версий — DEMO-данные (UI-ready, заменяются без переделки layout). НЕ из changelog-комментария.
       const SETTINGS_HISTORY = [
-        { v: 'v10.2.44', text: 'Добавлена персонализация PDF через контакты менеджера.' },
-        { v: 'v10.2.41', text: 'Добавлена выгрузка PDF-коммерческого предложения.' },
-        { v: 'v10.2.35', text: 'Добавлены пресеты часов вещания.' },
+        { v: 'v10.3.0',  text: 'Новый раздел «Настройки»: тема оформления, история версий и информация о продукте.' },
+        { v: 'v10.2.33', text: 'Контакты менеджера теперь можно добавить в коммерческое предложение PDF.' },
+        { v: 'v10.2.27', text: 'Появилась выгрузка коммерческого предложения в PDF (десктопная версия).' },
+        { v: 'v10.2.0',  text: 'Теперь можно изменить ставку за выход и сразу пересчитать бюджет.' },
+        { v: 'v9.3.0',   text: 'Добавлена подсказка для быстрого сохранения расчёта.' },
+        { v: 'v9.0.8',   text: 'Появились слайдеры для более быстрого ввода параметров.' },
+        { v: 'v8.41',    text: 'Обновлён интерфейс просмотра результата на мобильных устройствах.' },
+        { v: 'v7.1',     text: 'Расчёт можно сохранить как изображение PNG.' },
+        { v: 'v6.6.3',   text: 'Появилась полноценная мобильная версия калькулятора.' },
+        { v: 'v3.2',     text: 'Добавлен расчёт стоимости по экранам, дням, выходам и часам вещания.' },
+        { v: 'v1.0.0',   text: 'Первая версия калькулятора для предварительной оценки рекламных кампаний.' },
       ];
       const settingsHistoryList = document.getElementById('settingsHistoryList');
       if (settingsHistoryList) {
@@ -8664,6 +8747,30 @@ availH = colH - labelH - labelGap - metricsGap - metricsH - accentReserve;
           if (typeof closeRateSheet  === 'function') closeRateSheet();
         }
       });
+
+      // ════════════════════════════════════════════════════════════════
+      // v10.3.0: SCROLL-LOCK ФОНА. Apple HIG — пока модальный лист открыт, страница
+      // за ним инертна (палец по листу не двигает фон). MutationObserver следит за
+      // классом .open у всех трёх листов (share/rate/settings) и вешает/снимает
+      // body.sheet-open (overflow:hidden). Без правок функций листов (rate/share —
+      // святыни): чистое наблюдение за состоянием. Скролл ВНУТРИ настроек цел
+      // (overscroll-behavior:contain не даёт ему утекать на страницу).
+      // ════════════════════════════════════════════════════════════════
+      (function initSheetScrollLock() {
+        const sheets = ['shareSheet','rateSheet','settingsSheet']
+          .map(id => document.getElementById(id)).filter(Boolean);
+        if (!sheets.length) return;
+        const sync = () => {
+          const anyOpen = sheets.some(s => s.classList.contains('open'));
+          // html — реальный скроллер (html{overflow-y:auto}); вешаем и на него, и на body.
+          // overflow:hidden (не position:fixed) → позиция страницы не прыгает.
+          document.documentElement.classList.toggle('sheet-open', anyOpen);
+          document.body.classList.toggle('sheet-open', anyOpen);
+        };
+        const mo = new MutationObserver(sync);
+        sheets.forEach(s => mo.observe(s, { attributes: true, attributeFilter: ['class'] }));
+        sync();
+      })();
 
       savePngBtn.addEventListener('click', async () => { haptic('heavy'); closeShareSheet(); await takeSnapshot('png'); });
       savePdfBtn.addEventListener('click', () => { haptic('heavy'); closeShareSheet(); printAsPdf(); });
