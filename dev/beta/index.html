@@ -3,7 +3,7 @@
   ================================================
   Автор: Maxim Sorokin
   Бренд: DIGIT.
-    Продукт: DIGIT. Lite · v10.3.1
+    Продукт: DIGIT. Lite · v10.3.4
     ⚠️  ВЕРСИЯ САМОСИНХРОНИЗИРУЕТСЯ. Меняешь ТОЛЬКО 2 места руками:
        1. const APP_VERSION в JS (главная точка правды)
        2. Эта строка (Продукт: ...) — для разработчика, браузер её не читает
@@ -22,7 +22,6 @@
   v10.2.33 — Контакты менеджера теперь можно добавить в коммерческое предложение PDF.
   v10.2.27 — Появилась выгрузка коммерческого предложения в PDF (десктопная версия).
   v10.2.0  — Теперь можно изменить ставку за выход и сразу пересчитать бюджет.
-  v9.3.0   — Добавлена подсказка для быстрого сохранения расчёта.
   v9.0.8   — Появились слайдеры для более быстрого ввода параметров.
   v8.41    — Обновлён интерфейс просмотра результата на мобильных устройствах.
   v7.1     — Расчёт можно сохранить как изображение PNG.
@@ -1237,6 +1236,29 @@
              брейкпоинте — calc((100dvh-24px)/zoom) + overflow:hidden на sheet. Теперь закреплены
              ручка + «Настройки» + версия сверху и «Закрыть» снизу, скроллится только середина (секции +
              раскрытия) — единообразно на десктопе и мобиле. Условия media 1:1 с zoom-правилами body.
+
+			              v10.3.2 — Портретная блокировка + чистка истории. В ландшафте на телефоне нижний
+             блок цены перекрывал UI — добавлен CSS-оверлей .orientation-lock «Поверните телефон»
+             (только pointer:coarse + max-height:500px; десктоп/планшет не трогает; жёсткий lock
+             браузеру недоступен — screen.orientation.lock только fullscreen/PWA). Из «Истории версий»
+             (UI-массив + читаемый блок) убрана слабая запись v9.3.0 (подсказка сохранения).
+
+			              v10.3.3 — СИСТЕМНОЕ ПРАВИЛО эфемерной UI (Apple HIG). Транзиентные элементы
+             (тултипы, подсказка «нажмите на камеру», поповеры ставки/«выходов в час», scroll-hint)
+             больше не «висят» поверх/позади открытого меню. Введён единый глушитель dismissTransientUI()
+             + isAnySheetOpen(); вызов централизован из наблюдателя листов (теперь по КЛАССУ .share-sheet —
+             любой будущий лист подхватывается сам). Два направления: (a) лист открылся при висящей
+             подсказке → гасим с родной анимацией; (b) отложенная подсказка пытается показаться при
+             открытом листе → подавляется (guard). Фидбэк действия (snapshot-toast «Сохранено») не трогаем.
+             initSheetScrollLock → initSheetObserver. Святыни целы.
+
+			              v10.3.4 — Закрыты две дыры эфемерной UI + PWA для Яндекса. (1) Глушитель
+             dismissTransientUI() теперь гасит и общий тост snapshotToast (он же показывает
+             предупреждения «Выберите хотя бы один час») — раньше тост висел поверх/позади листа.
+             (2) Открытие любого поповера (ставка/«выходов в час»/дисклеймер) тоже вызывает глушитель
+             — тост/тултип уходят, toggle поповера цел (guard «уже открыт → return» срабатывает раньше).
+             (3) PWA: зарегистрирован service worker (sw.js, сеть-первой) — Яндекс.Браузер требует SW
+             с fetch-обработчиком для установки (Chrome ставил и без него). Святыни целы.
 			 
   ================================================
 -->
@@ -3298,6 +3320,27 @@
       .settings-sheet { max-height: calc((100vh - 24px) / 2.3); max-height: calc((100dvh - 24px) / 2.3); }
     }
 
+    /* ════════════════════════════════════════════════════════════════
+       v10.3.2: ПОРТРЕТНАЯ БЛОКИРОВКА. В ландшафте на телефоне нижний блок цены
+       перекрывает экран — UI не рабочий. Жёсткий lock ориентации обычному сайту в
+       браузере недоступен (screen.orientation.lock — только fullscreen/PWA), поэтому
+       чистое CSS-решение: в ландшафте на телефоне (pointer:coarse + max-height:500px)
+       показываем спокойный экран «поверните вертикально» поверх всего. Десктоп/планшет
+       (pointer:fine / большая высота) сюда не попадают — там калькулятор работает как есть. */
+    .orientation-lock { display: none; }
+    @media (orientation: landscape) and (max-height: 500px) and (pointer: coarse) {
+      .orientation-lock {
+        display: flex; position: fixed; inset: 0; z-index: 99999;
+        align-items: center; justify-content: center;
+        background: var(--bg); padding: 24px; text-align: center;
+        -webkit-user-select: none; user-select: none;
+      }
+      .orientation-lock-inner { display: flex; flex-direction: column; align-items: center; gap: 14px; max-width: 320px; }
+      .orientation-lock-icon { width: 46px; height: 46px; color: var(--orange); }
+      .orientation-lock-title { font-size: 17px; font-weight: 600; color: var(--text-primary); letter-spacing: -0.2px; }
+      .orientation-lock-text { font-size: 13.5px; font-weight: 400; color: var(--text-secondary); line-height: 1.45; }
+    }
+
     @media print {
       body > *:not(#printBlock) { display: none !important; }
       body { margin: 0; padding: 0; background: #fff !important; font-family: 'Montserrat', Arial, sans-serif; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -4592,6 +4635,21 @@
   <button class="sheet-cancel" id="settingsCloseBtn">Закрыть</button>
 </div>
 
+<!-- v10.3.2: Портретная блокировка (см. CSS .orientation-lock). Видна только в
+     ландшафте на телефоне; в портрете display:none, layout не затрагивает. -->
+<div class="orientation-lock" id="orientationLock" aria-hidden="true">
+  <div class="orientation-lock-inner">
+    <svg class="orientation-lock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="7" y="2.5" width="10" height="19" rx="2.4"/>
+      <line x1="10.6" y1="18.8" x2="13.4" y2="18.8"/>
+      <path d="M2.6 9.2a6.5 6.5 0 0 1 1.7-3"/>
+      <polyline points="2.2 6 2.6 9.4 6 9"/>
+    </svg>
+    <div class="orientation-lock-title">Поверните телефон</div>
+    <div class="orientation-lock-text">DIGIT. Lite работает в вертикальном режиме</div>
+  </div>
+</div>
+
 <!-- v10.2.0: Bottom Sheet настройки ставки за выход.
      Клон визуального паттерна .share-sheet (выезд снизу, Apple Wallet curve).
      Свой overlay #rateOverlay — оба sheet'а не открыты одновременно, конфликта нет.
@@ -4824,7 +4882,7 @@
     // Все DOM-узлы и ссылки обновляются из этой константы в init().
     // При обновлении версии — менять ТОЛЬКО здесь и в <title>.
     // ================================================
-      const APP_VERSION = 'v10.3.1';
+      const APP_VERSION = 'v10.3.4';
 
     // v10.0.3: словарь подсказок для frequency.
     // Apple HIG «Contextual Helper Text» / Nielsen №2 «Match real world».
@@ -6063,6 +6121,39 @@ availH = colH - labelH - labelGap - metricsGap - metricsH - accentReserve;
     }
     function hideTooltip(tooltip) { tooltip.classList.remove('show'); }
 
+    // ════════════════════════════════════════════════════════════════
+    // v10.3.3: СИСТЕМНОЕ ПРАВИЛО (Apple HIG). При появлении ЛЮБОЙ модальной
+    // поверхности (лист/меню) все ЭФЕМЕРНЫЕ элементы немедленно гасятся —
+    // тултипы, подсказка «нажмите на камеру», поповеры (ставка/«выходов в час»),
+    // scroll-hint. Анимация родная: снятие .show / .popover-visible запускает
+    // CSS-переход (fade/slide). Вызов — централизованно из наблюдателя листов
+    // (ниже). Любой НОВЫЙ лист на базе .share-sheet получает поведение
+    // автоматически, без доп. кода. НЕ трогаем фидбэк действия: snapshot-toast
+    // «Сохранено», fade-overlay снимка — это подтверждение, а не транзиент.
+    function isAnySheetOpen() {
+      return !!document.querySelector('.share-sheet.open');
+    }
+    function dismissTransientUI() {
+      // 1) Видимые тултипы
+      document.querySelectorAll('.tooltip.show').forEach(t => t.classList.remove('show'));
+      // 2) Поповеры (снимаем и с поповера, и с триггера — у обоих .popover-visible)
+      document.querySelectorAll('.popover-visible').forEach(el => el.classList.remove('popover-visible'));
+      // 2b) Тост: общий элемент snapshotToast служит и для «Сохранено», и для предупреждений
+      //     («Выберите хотя бы один час»). При появлении модальной поверхности тост уходит.
+      const _toast = document.getElementById('snapshotToast');
+      if (_toast) _toast.classList.remove('show');
+      // 3) Подсказка сохранения: гасим, отменяем отложенный показ, чистим glow на кнопке
+      const sh = document.getElementById('saveHintToast');
+      if (sh) sh.classList.remove('show');
+      if (_saveHintTimer) { clearTimeout(_saveHintTimer); _saveHintTimer = null; }
+      _saveHintActive = false;
+      if (_saveHintRepositionHandler) { window.removeEventListener('resize', _saveHintRepositionHandler); _saveHintRepositionHandler = null; }
+      document.querySelectorAll('.hint-glow, .hint-icon-pulse').forEach(b => b.classList.remove('hint-glow', 'hint-icon-pulse'));
+      // 4) Подсказка скролла «Часы вещания ниже»
+      const scrollHint = document.getElementById('scrollHint');
+      if (scrollHint) scrollHint.classList.remove('show');
+    }
+
         // ================================================
     // SAVE HINT TOOLTIP · v9.3.1
     // Apple Wallet pattern с хвостиком-стрелкой к кнопке.
@@ -6214,6 +6305,7 @@ availH = colH - labelH - labelGap - metricsGap - metricsH - accentReserve;
       _saveHintTimer = setTimeout(() => {
         // Финальные проверки перед показом
         if (selectedHours.size === 0 || hasAnyError()) return;
+        if (isAnySheetOpen()) return; // v10.3.3: не выводим подсказку поверх открытого меню (системное правило)
 
         const targetBtn = findTargetButton();
         if (!targetBtn) return;
@@ -8724,7 +8816,6 @@ availH = colH - labelH - labelGap - metricsGap - metricsH - accentReserve;
         { v: 'v10.2.33', text: 'Контакты менеджера теперь можно добавить в коммерческое предложение PDF.' },
         { v: 'v10.2.27', text: 'Появилась выгрузка коммерческого предложения в PDF (десктопная версия).' },
         { v: 'v10.2.0',  text: 'Теперь можно изменить ставку за выход и сразу пересчитать бюджет.' },
-        { v: 'v9.3.0',   text: 'Добавлена подсказка для быстрого сохранения расчёта.' },
         { v: 'v9.0.8',   text: 'Появились слайдеры для более быстрого ввода параметров.' },
         { v: 'v8.41',    text: 'Обновлён интерфейс просмотра результата на мобильных устройствах.' },
         { v: 'v7.1',     text: 'Расчёт можно сохранить как изображение PNG.' },
@@ -8756,9 +8847,13 @@ availH = colH - labelH - labelGap - metricsGap - metricsH - accentReserve;
       // святыни): чистое наблюдение за состоянием. Скролл ВНУТРИ настроек цел
       // (overscroll-behavior:contain не даёт ему утекать на страницу).
       // ════════════════════════════════════════════════════════════════
-      (function initSheetScrollLock() {
-        const sheets = ['shareSheet','rateSheet','settingsSheet']
-          .map(id => document.getElementById(id)).filter(Boolean);
+      // v10.3.3: ЦЕНТРАЛЬНЫЙ наблюдатель листов. Наблюдаем ВСЕ .share-sheet по КЛАССУ
+      // (не по фикс-ID) — любой будущий лист подхватывается автоматически. На открытие
+      // любого листа: (1) scroll-lock фона, (2) сброс эфемерной UI (системное правило Apple).
+      // Колбэк MutationObserver — микротаска, отрабатывает ДО отрисовки: подсказка/тултип
+      // снимаются в том же кадре, без мигания.
+      (function initSheetObserver() {
+        const sheets = Array.from(document.querySelectorAll('.share-sheet'));
         if (!sheets.length) return;
         const sync = () => {
           const anyOpen = sheets.some(s => s.classList.contains('open'));
@@ -8766,11 +8861,25 @@ availH = colH - labelH - labelGap - metricsGap - metricsH - accentReserve;
           // overflow:hidden (не position:fixed) → позиция страницы не прыгает.
           document.documentElement.classList.toggle('sheet-open', anyOpen);
           document.body.classList.toggle('sheet-open', anyOpen);
+          // Системное правило: открытый лист гасит висящие тултипы/подсказки/поповеры.
+          if (anyOpen) dismissTransientUI();
         };
         const mo = new MutationObserver(sync);
         sheets.forEach(s => mo.observe(s, { attributes: true, attributeFilter: ['class'] }));
         sync();
       })();
+
+      // ════════════════════════════════════════════════════════════════
+      // v10.3.4: регистрация service worker. Нужна для установки PWA в браузерах,
+      // которые требуют SW с fetch-обработчиком (Яндекс.Браузер; Chrome 109+ ставит
+      // и без него). Файл sw.js лежит РЯДОМ с index.html (тот же каталог /dev/beta/).
+      // Стратегия в sw.js — сеть-первой: онлайн всегда свежий контент, оффлайн —
+      // фолбэк из кэша. Ошибки глушим (на работу калькулятора не влияют).
+      if ('serviceWorker' in navigator) {
+        const _regSW = () => navigator.serviceWorker.register('sw.js').catch(() => {});
+        if (document.readyState === 'complete') _regSW();
+        else window.addEventListener('load', _regSW);
+      }
 
       savePngBtn.addEventListener('click', async () => { haptic('heavy'); closeShareSheet(); await takeSnapshot('png'); });
       savePdfBtn.addEventListener('click', () => { haptic('heavy'); closeShareSheet(); printAsPdf(); });
@@ -8815,6 +8924,7 @@ availH = colH - labelH - labelGap - metricsGap - metricsH - accentReserve;
           infoTrigger.addEventListener('click', (e) => {
             e.stopPropagation(); e.preventDefault();
             if (infoPopover.classList.contains('popover-visible')) return;
+            dismissTransientUI(); // v10.3.4: открытие поповера гасит висящий тост/подсказку
             infoPopover.classList.add('popover-visible');
             infoTrigger.classList.add('popover-visible');
             adjustInfoPopover();
@@ -8845,6 +8955,7 @@ availH = colH - labelH - labelGap - metricsGap - metricsH - accentReserve;
         infoTriggerMobile.addEventListener('click', (e) => {
           e.stopPropagation(); e.preventDefault();
           if (infoPopoverMobile.classList.contains('popover-visible')) return;
+          dismissTransientUI(); // v10.3.4: открытие поповера гасит висящий тост/подсказку
           infoPopoverMobile.classList.add('popover-visible');
           infoTriggerMobile.classList.add('popover-visible');
           positionInfoPopover(infoTriggerMobile, infoPopoverMobile);
@@ -8887,6 +8998,7 @@ availH = colH - labelH - labelGap - metricsGap - metricsH - accentReserve;
           infoTriggerFreq.addEventListener('click', (e) => {
             e.stopPropagation(); e.preventDefault();
             if (infoPopoverFreq.classList.contains('popover-visible')) return;
+            dismissTransientUI(); // v10.3.4: открытие поповера гасит висящий тост/подсказку
             infoPopoverFreq.classList.add('popover-visible');
             infoTriggerFreq.classList.add('popover-visible');
             positionInfoPopover(infoTriggerFreq, infoPopoverFreq);
