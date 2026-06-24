@@ -3,7 +3,7 @@
   ================================================
   Автор: Maxim Sorokin
   Бренд: DIGIT.
-    Продукт: DIGIT. Lite · v10.3.4
+    Продукт: DIGIT. Lite · v10.3.8
     ⚠️  ВЕРСИЯ САМОСИНХРОНИЗИРУЕТСЯ. Меняешь ТОЛЬКО 2 места руками:
        1. const APP_VERSION в JS (главная точка правды)
        2. Эта строка (Продукт: ...) — для разработчика, браузер её не читает
@@ -19,7 +19,7 @@
      Детальные технические заметки разработки — НИЖЕ (блок «Изменения:»).
   ------------------------------------------------
   v10.3.0  — Новый раздел «Настройки»: тема оформления, история версий и информация о продукте.
-  v10.2.33 — Контакты менеджера теперь можно добавить в коммерческое предложение PDF.
+  v10.2.33 — Контакты менеджера теперь можно добавить в коммерческое предложение.
   v10.2.27 — Появилась выгрузка коммерческого предложения в PDF (десктопная версия).
   v10.2.0  — Теперь можно изменить ставку за выход и сразу пересчитать бюджет.
   v9.0.8   — Появились слайдеры для более быстрого ввода параметров.
@@ -1259,6 +1259,46 @@
              — тост/тултип уходят, toggle поповера цел (guard «уже открыт → return» срабатывает раньше).
              (3) PWA: зарегистрирован service worker (sw.js, сеть-первой) — Яндекс.Браузер требует SW
              с fetch-обработчиком для установки (Chrome ставил и без него). Святыни целы.
+
+			              v10.3.5 — Закрыт десктопный зазор эфемерной UI + правило «одно всплытие за раз».
+             КОРЕНЬ: на десктопе поповеры «i» (дисклеймер, «выходов в час») открываются на CSS-hover,
+             а глушитель был только в mobile-click обработчиках → наведение на «i» НЕ убирало висящий
+             тост («Выберите хотя бы один час»). Рефактор: из dismissTransientUI выделен
+             dismissPersistentOverlays() (тост + подсказка сохранения + scroll-hint — те, что висят по
+             таймеру, не на hover). Подключён в: (1) showTooltip — любой новый тултип гасит тост/подсказку
+             и ЛЮБОЙ другой тултип (два всплытия одновременно невозможны); (2) mouseenter обоих «i»-триггеров
+             на десктопе. dismissTransientUI теперь = тултипы + поповеры + dismissPersistentOverlays().
+             Святыни целы (PNG drawText/_yDraw не тронут).
+
+			              v10.3.6 — Контакт менеджера в PNG-снимке (летрхед в шапке справа). Только имя +
+             телефон (без e-mail: PNG живёт в мессенджерах). Добавлен ОБЫЧНЫМ html2canvas как текст
+             в клон шапки (.header-actions, где были кнопки) — НЕ через canvas drawText, поэтому
+             вертикаль цены (_yDraw/_trueCenterLogical/snapScale) и вся PNG-святыня НЕ ТРОНУТЫ.
+             Геометрия фиксирована .is-snap-mode (480px) + явные inline-px → 100% стабильно на любом
+             устройстве (как desktop, так и Nubia DPR3). Иерархия Apple: имя 14px/600/strong (цвет ac
+             пилюли), телефон 13px/500/muted (#9A9AA4/#6E6E73) — тон семьи контекст-пилюли. Высота
+             шапки не растёт (контакт ≈ высоте логотипа, бок о бок) → блоки ниже не сдвигаются. Рендер
+             ТОЛЬКО при наличии имени/телефона через getManagerContact() (зеркало PDF-CTA); нет данных →
+             шапка как раньше (только логотип), без заглушки. escapeHtmlContact (XSS). Версия v10.3.6.
+
+			              v10.3.7 — Доводка контакта в PNG + правило приоритета. (1) ПРИОРИТЕТ как в PDF:
+             ИМЯ → телефон → e-mail; ИМЯ теперь ОБЯЗАТЕЛЬНЫЙ якорь — нет имени → блок не рисуем даже
+             при наличии телефона/почты (контакт без имени «бесхозен»); 2-я строка = телефон, иначе
+             e-mail. (2) Apple-доводка тона: имя #3A3A3C(светл)/#C7C7CC(тёмн), телефон #8E8E93 — тише
+             на ~15-20%, логотип снова явный главный объект шапки. (3) Межстрочный плотнее (line-height
+             1.25→1.1, убран margin-top) — читается одним блоком. (4) Блок прижат к низу логотипа
+             (align-self:flex-end, контакт — прямой ребёнок .header-row, пустой .header-actions удалён):
+             низ телефона на линии низа логотипа («невидимая горизонталь»). PNG-святыня (_yDraw) цела.
+             История v10.2.33: «...в коммерческое предложение» (убран «PDF» — относится и к PNG).
+
+			              v10.3.8 — Дата в PNG + единое правило персонализации. (1) В подвал снимка добавлен
+             тихий таймстамп «Сформировано DD.MM.YYYY» (как в PDF) — отдельной строкой под дисклеймером,
+             10px/#8E8E93 (самый тихий элемент), формат вручную dd.mm.yyyy (без locale-бага). Маркетинг:
+             датированный расчёт = «актуально на сегодня», доверие без перегруза. (2) Развилка PDF-CTA
+             переведена на тот же якорь, что и PNG: персонализация ТОЛЬКО при наличии ИМЕНИ. Нет имени →
+             обезличенное «Свяжитесь с вашим менеджером», даже если заполнены телефон/почта (контакт без
+             имени «бесхозен»). Гейт setPrintCta: hasManagerContact() → проверка имени; саму функцию
+             hasManagerContact() НЕ трогаем (используется в состоянии карточки профиля). PNG-святыня цела.
 			 
   ================================================
 -->
@@ -4882,7 +4922,7 @@
     // Все DOM-узлы и ссылки обновляются из этой константы в init().
     // При обновлении версии — менять ТОЛЬКО здесь и в <title>.
     // ================================================
-      const APP_VERSION = 'v10.3.4';
+      const APP_VERSION = 'v10.3.8';
 
     // v10.0.3: словарь подсказок для frequency.
     // Apple HIG «Contextual Helper Text» / Nielsen №2 «Match real world».
@@ -6116,6 +6156,10 @@ availH = colH - labelH - labelGap - metricsGap - metricsH - accentReserve;
 
     function showTooltip(tooltip) {
       if (tooltip === snapshotTooltip && snapshotBtn.classList.contains('has-errors')) return;
+      // v10.3.5: новый тултип гасит висящий тост/подсказку И любой другой тултип —
+      // одно всплытие за раз (Apple: два эфемерных оверлея одновременно недопустимы).
+      dismissPersistentOverlays();
+      document.querySelectorAll('.tooltip.show').forEach(t => { if (t !== tooltip) t.classList.remove('show'); });
       tooltip.classList.add('show');
       if (tooltip.parentElement) adjustPopup(tooltip, tooltip.parentElement);
     }
@@ -6133,25 +6177,28 @@ availH = colH - labelH - labelGap - metricsGap - metricsH - accentReserve;
     function isAnySheetOpen() {
       return !!document.querySelector('.share-sheet.open');
     }
-    function dismissTransientUI() {
-      // 1) Видимые тултипы
-      document.querySelectorAll('.tooltip.show').forEach(t => t.classList.remove('show'));
-      // 2) Поповеры (снимаем и с поповера, и с триггера — у обоих .popover-visible)
-      document.querySelectorAll('.popover-visible').forEach(el => el.classList.remove('popover-visible'));
-      // 2b) Тост: общий элемент snapshotToast служит и для «Сохранено», и для предупреждений
-      //     («Выберите хотя бы один час»). При появлении модальной поверхности тост уходит.
+    // v10.3.5: ПЕРСИСТЕНТНЫЕ оверлеи — те, что висят по ТАЙМЕРУ (не на hover): тост
+    // (snapshotToast — «Сохранено» И предупреждения), подсказка сохранения, scroll-hint.
+    // Именно они могут наложиться на hover-тултип/поповер → «два всплытия разом». Поэтому
+    // гасятся при появлении ЛЮБОГО оверлея (тултип/поповер/лист). Сами тултипы/поповеры сюда
+    // НЕ входят: они hover-эксклюзивны (mouseleave убирает их сам), чистятся в showTooltip.
+    function dismissPersistentOverlays() {
       const _toast = document.getElementById('snapshotToast');
       if (_toast) _toast.classList.remove('show');
-      // 3) Подсказка сохранения: гасим, отменяем отложенный показ, чистим glow на кнопке
       const sh = document.getElementById('saveHintToast');
       if (sh) sh.classList.remove('show');
       if (_saveHintTimer) { clearTimeout(_saveHintTimer); _saveHintTimer = null; }
       _saveHintActive = false;
       if (_saveHintRepositionHandler) { window.removeEventListener('resize', _saveHintRepositionHandler); _saveHintRepositionHandler = null; }
       document.querySelectorAll('.hint-glow, .hint-icon-pulse').forEach(b => b.classList.remove('hint-glow', 'hint-icon-pulse'));
-      // 4) Подсказка скролла «Часы вещания ниже»
       const scrollHint = document.getElementById('scrollHint');
       if (scrollHint) scrollHint.classList.remove('show');
+    }
+    function dismissTransientUI() {
+      // Полный сброс (для листов/меню): тултипы + поповеры + персистентные оверлеи.
+      document.querySelectorAll('.tooltip.show').forEach(t => t.classList.remove('show'));
+      document.querySelectorAll('.popover-visible').forEach(el => el.classList.remove('popover-visible'));
+      dismissPersistentOverlays();
     }
 
         // ================================================
@@ -6467,12 +6514,16 @@ availH = colH - labelH - labelGap - metricsGap - metricsH - accentReserve;
       const cta = document.querySelector('.print-cta');
       if (!cta) return;
       const c = getManagerContact();
-      if (!hasManagerContact()) {
-        cta.innerHTML = 'Свяжитесь с вашим менеджером'; // обезличенный (текущий)
+      const _ctaName = (c.name || '').trim();
+      // v10.3.8: ИМЯ — ОБЯЗАТЕЛЬНЫЙ якорь персонализации (единое правило с PNG). Нет имени →
+      // обезличенное предложение, даже если заполнены телефон/почта (контакт без имени «бесхозен»).
+      // hasManagerContact() больше не решает развилку CTA (но используется в состоянии профиля).
+      if (!_ctaName) {
+        cta.innerHTML = 'Свяжитесь с вашим менеджером'; // обезличенный
         return;
       }
       let html = '<span class="print-cta-label">Свяжитесь с вашим менеджером</span>'; // v10.2.34 (В1): призыв = тихая метка, имя-герой ниже
-      if (c.name)  html += '<span class="print-cta-line print-cta-name">' + escapeHtmlContact(c.name) + '</span>';
+      html += '<span class="print-cta-line print-cta-name">' + escapeHtmlContact(_ctaName) + '</span>';
       if (c.phone) html += '<span class="print-cta-line">' + escapeHtmlContact(c.phone) + '</span>';
       if (c.email) html += '<span class="print-cta-line">' + escapeHtmlContact(c.email) + '</span>';
       cta.innerHTML = html;
@@ -6742,6 +6793,35 @@ availH = colH - labelH - labelGap - metricsGap - metricsH - accentReserve;
       const ac = isLight ? '#1D1D1F' : '#E0E0E8';
       paramRow.innerHTML = `<b style="color:${ac};font-weight:700;">${screensVal}</b>&nbsp;${plural(sN,'экран','экрана','экранов')}&nbsp;·&nbsp;<b style="color:${ac};font-weight:700;">${daysVal}</b>&nbsp;${plural(dN,'день','дня','дней')}&nbsp;·&nbsp;<b style="color:${ac};font-weight:700;">${freqVal}</b>&nbsp;${plural(fN,'выход','выхода','выходов')}/час`;
 
+      // ════════════════════════════════════════════════════════════════
+      // v10.3.7: КОНТАКТ МЕНЕДЖЕРА в шапку снимка (летрхед справа, балансирует логотип).
+      // ПРИОРИТЕТ (зеркало PDF): ИМЯ → телефон → e-mail. ИМЯ — ОБЯЗАТЕЛЬНЫЙ якорь: нет имени →
+      // блок НЕ рисуем даже при наличии телефона/почты (контакт без имени «бесхозен», выглядит
+      // как обрывок). Вторая строка = телефон, иначе e-mail (если задан). Рисуется ОБЫЧНЫМ
+      // html2canvas как текст (НЕ цена → drawText/_yDraw НЕ трогаем); геометрия .is-snap-mode
+      // (480px) → стабильно на любом устройстве. Доводка: имя/телефон тише (Apple label-иерархия
+      // #3A3A3C/#8E8E93 — логотип остаётся главным), межстрочный плотнее (line-height 1.1), блок
+      // прижат к НИЗУ логотипа (align-self:flex-end → низ 2-й строки на линии низа логотипа —
+      // «невидимая горизонталь»). Высота шапки не растёт → цена ниже не сдвигается.
+      const _mc = getManagerContact();
+      const _nm = (_mc.name  || '').trim();
+      const _ph = (_mc.phone || '').trim();
+      const _em = (_mc.email || '').trim();
+      if (_nm) {
+        const _second = _ph || _em; // телефон приоритетнее; если его нет — e-mail (если задан)
+        const _nameC = isLight ? '#3A3A3C' : '#C7C7CC';
+        const _subC  = '#8E8E93';
+        const contactBox = document.createElement('div');
+        contactBox.style.cssText = 'display:flex;flex-direction:column;align-self:flex-end;text-align:right;line-height:1.1;font-family:Montserrat,sans-serif;flex:0 0 auto;';
+        let _h = '<div style="font-size:14px;font-weight:600;color:' + _nameC + ';letter-spacing:-0.1px;white-space:nowrap;">' + escapeHtmlContact(_nm) + '</div>';
+        if (_second) _h += '<div style="font-size:13px;font-weight:500;color:' + _subC + ';white-space:nowrap;">' + escapeHtmlContact(_second) + '</div>';
+        contactBox.innerHTML = _h;
+        const _actions = header.querySelector('.header-actions');
+        if (_actions) _actions.remove();
+        const _hr = header.querySelector('.header-row');
+        if (_hr) _hr.appendChild(contactBox);
+      }
+
       // v9.1.5: блок переименования hoursTitleEl удалён — Title Case живёт в UI
       const hoursTitleEl = calculatorBlock.querySelector('.card-title');
 
@@ -6770,7 +6850,13 @@ availH = colH - labelH - labelGap - metricsGap - metricsH - accentReserve;
           'Расчёт носит ознакомительный характер. Учитывается ставка за выход ' +
                     '<b style="font-weight:700;color:' + (isLight ? '#6E6E73' : '#9A9AA4') + ';">' /* v10.2.7: ТОЧНО цвет «Временная шкала»/lblColor (был #3A3A3C — темнее) */ +
           rateTxt.replace('\u202F', '\u00A0') + '</b> (без НДС). ' +
-          'Настройка и запуск кампании выполняются в личном кабинете.';
+          'Настройка и запуск кампании выполняются в личном кабинете.' +
+          // v10.3.8: тихий таймстамп в подвал снимка (как «Сформировано» в PDF). Формат dd.mm.yyyy
+          // вручную (toLocaleDateString на англ. Windows даёт 4/15/2025). Самый тихий элемент:
+          // 10px, #8E8E93 (тише дисклеймера), отдельной строкой снизу. Маркетинг: датированный
+          // расчёт читается как «актуально на сегодня» — доверие + лёгкая свежесть, без перегруза.
+          '<span style="display:block;margin-top:7px;font-size:10px;color:#8E8E93;letter-spacing:0.1px;">Сформировано ' +
+          (function(){ const _d=new Date(); return String(_d.getDate()).padStart(2,'0')+'.'+String(_d.getMonth()+1).padStart(2,'0')+'.'+_d.getFullYear(); })() + '</span>';
       }
       footer.querySelectorAll('.disclaimer-mobile').forEach(el => el.remove());
       footer.querySelectorAll('#snapshotBtnMobile').forEach(el => el.remove());
@@ -8813,7 +8899,7 @@ availH = colH - labelH - labelGap - metricsGap - metricsH - accentReserve;
       // История версий — DEMO-данные (UI-ready, заменяются без переделки layout). НЕ из changelog-комментария.
       const SETTINGS_HISTORY = [
         { v: 'v10.3.0',  text: 'Новый раздел «Настройки»: тема оформления, история версий и информация о продукте.' },
-        { v: 'v10.2.33', text: 'Контакты менеджера теперь можно добавить в коммерческое предложение PDF.' },
+        { v: 'v10.2.33', text: 'Контакты менеджера теперь можно добавить в коммерческое предложение.' },
         { v: 'v10.2.27', text: 'Появилась выгрузка коммерческого предложения в PDF (десктопная версия).' },
         { v: 'v10.2.0',  text: 'Теперь можно изменить ставку за выход и сразу пересчитать бюджет.' },
         { v: 'v9.0.8',   text: 'Появились слайдеры для более быстрого ввода параметров.' },
@@ -8919,7 +9005,7 @@ availH = colH - labelH - labelGap - metricsGap - metricsH - accentReserve;
            // v10.2.4: desktop — popover ТОЛЬКО на hover (CSS .info-tooltip-trigger:hover).
       // Клик НЕ фиксирует (Apple: hover-модель на desktop). На mobile — клик + защита.
       if (infoTrigger && infoPopover) {
-        infoTrigger.addEventListener('mouseenter', () => setTimeout(adjustInfoPopover, 10));
+        infoTrigger.addEventListener('mouseenter', () => { dismissPersistentOverlays(); setTimeout(adjustInfoPopover, 10); }); // v10.3.5: hover «i» гасит висящий тост
         if (isMobileDevice()) {
           infoTrigger.addEventListener('click', (e) => {
             e.stopPropagation(); e.preventDefault();
@@ -8992,6 +9078,7 @@ availH = colH - labelH - labelGap - metricsGap - metricsH - accentReserve;
       if (infoTriggerFreq && infoPopoverFreq) {
         // v10.2.4: desktop — hover (CSS). Клик-фиксация только на mobile + защита.
         infoTriggerFreq.addEventListener('mouseenter', () => {
+          dismissPersistentOverlays(); // v10.3.5: hover «i» гасит висящий тост
           setTimeout(() => positionInfoPopover(infoTriggerFreq, infoPopoverFreq), 10);
         });
         if (isMobileDevice()) {
